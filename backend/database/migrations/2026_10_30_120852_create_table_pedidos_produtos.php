@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');
             $table->foreignId('produto_id')->constrained('produtos')->onDelete('cascade');
             $table->integer('quantidade');
+            $table->decimal('preco_unitario', 10, 2);
         });
     }
 
