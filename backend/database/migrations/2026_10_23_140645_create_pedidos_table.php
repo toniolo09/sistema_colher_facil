@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->foreignId('produtor')->constrained('users')->onDelete('cascade');
+            $table->foreignId('consumidor')->constrained('users')->onDelete('cascade');
+            $table->decimal('valor_total', 10, 2);
         });
     }
 

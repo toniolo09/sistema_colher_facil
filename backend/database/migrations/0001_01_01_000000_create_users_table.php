@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nome');
             $table->string('email')->unique();
-            $table->string('tipo_usuario')->default('usuario')->values(['usuario', 'admin', 'produtor']);
+            $table->string('tipo_usuario')->default('consumidor')->values(['consumidor', 'admin', 'produtor']);
             $table->string('nome_propriedade')->nullable();
             $table->string('telefone');
             $table->timestamp('email_verified_at')->nullable();
