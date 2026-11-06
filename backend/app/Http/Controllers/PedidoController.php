@@ -12,15 +12,8 @@ class PedidoController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $pedidos = Pedido::all();
+        return response()->json($pedidos);
     }
 
     /**
@@ -28,7 +21,16 @@ class PedidoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'produto_id' => 'required|exists:produtos,id',
+            'quantidade' => 'required|integer|min:1',
+            'status' => 'required|string|max:255',
+        ]);
+
+        $pedido = Pedido::create($request->all());
+
+        return response()->json($pedido, 201);
     }
 
     /**
@@ -36,15 +38,7 @@ class PedidoController extends Controller
      */
     public function show(Pedido $pedido)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Pedido $pedido)
-    {
-        //
+        return response()->json($pedido);
     }
 
     /**
@@ -52,7 +46,16 @@ class PedidoController extends Controller
      */
     public function update(Request $request, Pedido $pedido)
     {
-        //
+        $request->validate([
+            'user_id' => 'sometimes|required|exists:users,id',
+            'produto_id' => 'sometimes|required|exists:produtos,id',
+            'quantidade' => 'sometimes|required|integer|min:1',
+            'status' => 'sometimes|required|string|max:255',
+        ]);
+
+        $pedido->update($request->all());
+
+        return response()->json($pedido);
     }
 
     /**
@@ -60,6 +63,8 @@ class PedidoController extends Controller
      */
     public function destroy(Pedido $pedido)
     {
-        //
+        $pedido->delete();
+
+        return response()->json(null, 204);
     }
 }

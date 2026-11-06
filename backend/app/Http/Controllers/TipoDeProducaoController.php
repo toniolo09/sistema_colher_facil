@@ -12,15 +12,8 @@ class TipoDeProducaoController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $tiposDeProducao = TipoDeProducao::all();
+        return response()->json($tiposDeProducao);
     }
 
     /**
@@ -28,7 +21,18 @@ class TipoDeProducaoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        if ($request->user()->tipo_usuario !== 'admin') {
+            return response()->json(['error' => 'Apenas administradores podem criar tipos de produção.'], 403);
+        }
+
+        $request->validate([
+            'nome' => 'required|string|max:255',
+            'descricao' => 'nullable|string',
+        ]);
+
+        $tipoDeProducao = TipoDeProducao::create($request->all());
+
+        return response()->json($tipoDeProducao, 201);
     }
 
     /**
@@ -36,15 +40,7 @@ class TipoDeProducaoController extends Controller
      */
     public function show(TipoDeProducao $tipoDeProducao)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(TipoDeProducao $tipoDeProducao)
-    {
-        //
+        return response()->json($tipoDeProducao);
     }
 
     /**
@@ -52,14 +48,31 @@ class TipoDeProducaoController extends Controller
      */
     public function update(Request $request, TipoDeProducao $tipoDeProducao)
     {
-        //
+        if ($request->user()->tipo_usuario !== 'admin') {
+            return response()->json(['error' => 'Apenas administradores podem atualizar tipos de produção.'], 403);
+        }
+
+        $request->validate([
+            'nome' => 'required|string|max:255',
+            'descricao' => 'nullable|string',
+        ]);
+
+        $tipoDeProducao->update($request->all());
+
+        return response()->json($tipoDeProducao);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TipoDeProducao $tipoDeProducao)
+    public function destroy(Request $request, TipoDeProducao $tipoDeProducao)
     {
-        //
+        if ($request->user()->tipo_usuario !== 'admin') {
+            return response()->json(['error' => 'Apenas administradores podem excluir tipos de produção.'], 403);
+        }
+
+        $tipoDeProducao->delete();
+
+        return response()->json(null, 204);
     }
 }
