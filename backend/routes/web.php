@@ -23,20 +23,14 @@ Route::get('/tipos-de-producao/{tipoDeProducao}', [TipoDeProducaoController::cla
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    
     Route::post('/logout', [UserController::class, 'logout']); 
     Route::get('/user', function (Request $request) {
         return response()->json($request->user()); 
     });
 
     
-    Route::apiResource('users', UserController::class)->middleware(function ($request, $next) {
-        if ($request->user()->tipo_usuario !== 'admin') {
-            return response()->json(['error' => 'Acesso negado. Apenas administradores.'], 403);
-        }
-        return $next($request);
-    });
-
+    Route::apiResource('users', UserController::class)->middleware('admin');
+    
     
     Route::post('/produtos', [ProdutoController::class, 'store']);
     Route::put('/produtos/{produto}', [ProdutoController::class, 'update']);

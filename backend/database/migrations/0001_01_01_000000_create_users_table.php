@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('nome_propriedade')->nullable();
             $table->string('telefone');
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password'); 
             $table->rememberToken();
             $table->timestamps();
         });
