@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -44,23 +43,21 @@ class UserController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => 'Credenciais inválidas'
-            ], 401);
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Credenciais inválidas'], 401);
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
-
-        // Cria um token de acesso para o Sanctum
         $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
             'message' => 'Login efetuado com sucesso',
             'access_token' => $token,
             'token_type' => 'Bearer',
             'utilizador' => $user
         ]);
+
+
     }
 
     public function logout(Request $request)

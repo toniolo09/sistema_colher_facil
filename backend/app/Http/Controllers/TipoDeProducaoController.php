@@ -27,7 +27,7 @@ class TipoDeProducaoController extends Controller
 
         $request->validate([
             'nome' => 'required|string|max:255',
-            'descricao' => 'nullable|string',
+            'descricao' => 'nullable|string'
         ]);
 
         $tipoDeProducao = TipoDeProducao::create($request->all());
