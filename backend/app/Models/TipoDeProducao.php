@@ -10,6 +10,7 @@ class TipoDeProducao extends Model
 
     protected $fillable = [
         'nome',
-        'descricao',
+        'descricao'
     ];
+
 }

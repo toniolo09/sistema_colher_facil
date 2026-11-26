@@ -3,68 +3,117 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pedido;
+use App\Models\Produto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PedidoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    private const STATUS = ['pendente', 'confirmado', 'enviado', 'entregue', 'cancelado'];
+
+    public function index(Request $request)
     {
-        $pedidos = Pedido::all();
-        return response()->json($pedidos);
+        $user = $request->user();
+        $query = Pedido::with('produtos');
+
+        if ($user->tipo_usuario === 'consumidor') {
+            $query->where('consumidor_id', $user->id);
+        } elseif ($user->tipo_usuario === 'produtor') {
+            $query->where('produtor_id', $user->id);
+        }
+
+        return response()->json($query->latest()->get());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'produto_id' => 'required|exists:produtos,id',
-            'quantidade' => 'required|integer|min:1',
-            'status' => 'required|string|max:255',
+        $user = $request->user();
+
+        if ($user->tipo_usuario !== 'consumidor') {
+            return response()->json(['error' => 'Apenas consumidores podem fazer pedidos.'], 403);
+        }
+
+        $data = $request->validate([
+            'produtos' => 'required|array|min:1',
+            'produtos.*.produto_id' => 'required|integer|distinct|exists:produtos,id',
+            'produtos.*.quantidade' => 'required|integer|min:1',
         ]);
 
-        $pedido = Pedido::create($request->all());
+        $produtos = Produto::whereIn('id', collect($data['produtos'])->pluck('produto_id'))->get();
+        $produtores = $produtos->pluck('user_id')->unique();
 
-        return response()->json($pedido, 201);
+        if ($produtores->count() > 1) {
+            return response()->json([
+                'error' => 'Todos os produtos de um pedido devem ser do mesmo produtor.',
+            ], 422);
+        }
+
+        $pedido = DB::transaction(function () use ($data, $user, $produtores) {
+            $pedido = Pedido::create([
+                'consumidor_id' => $user->id,
+                'produtor_id' => $produtores->first(),
+                'status' => 'pendente',
+            ]);
+
+            $itens = [];
+            foreach ($data['produtos'] as $item) {
+                $itens[$item['produto_id']] = ['quantidade' => $item['quantidade']];
+            }
+            $pedido->produtos()->attach($itens);
+
+            return $pedido;
+        });
+
+        return response()->json($pedido->load('produtos'), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Pedido $pedido)
+    public function show(Request $request, Pedido $pedido)
     {
-        return response()->json($pedido);
+        $this->autorizar($request, $pedido);
+
+        return response()->json($pedido->load('produtos'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Pedido $pedido)
     {
-        $request->validate([
-            'user_id' => 'sometimes|required|exists:users,id',
-            'produto_id' => 'sometimes|required|exists:produtos,id',
-            'quantidade' => 'sometimes|required|integer|min:1',
-            'status' => 'sometimes|required|string|max:255',
+        $this->autorizar($request, $pedido);
+        $user = $request->user();
+
+        $data = $request->validate([
+            'status' => 'required|string|in:' . implode(',', self::STATUS),
         ]);
 
-        $pedido->update($request->all());
+        // Consumidor só pode cancelar, e apenas enquanto pendente
+        if ($user->tipo_usuario === 'consumidor') {
+            if ($data['status'] !== 'cancelado' || $pedido->status !== 'pendente') {
+                return response()->json(['error' => 'Você só pode cancelar pedidos pendentes.'], 403);
+            }
+        }
 
-        return response()->json($pedido);
+        $pedido->update($data);
+
+        return response()->json($pedido->load('produtos'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Pedido $pedido)
+    public function destroy(Request $request, Pedido $pedido)
     {
+        if ($request->user()->tipo_usuario !== 'admin') {
+            return response()->json(['error' => 'Apenas administradores podem excluir pedidos.'], 403);
+        }
+
         $pedido->delete();
 
         return response()->json(null, 204);
+    }
+
+    private function autorizar(Request $request, Pedido $pedido): void
+    {
+        $user = $request->user();
+
+        $permitido = $user->tipo_usuario === 'admin'
+            || $pedido->consumidor_id === $user->id
+            || $pedido->produtor_id === $user->id;
+
+        abort_unless($permitido, 403, 'Você não tem acesso a este pedido.');
     }
 }

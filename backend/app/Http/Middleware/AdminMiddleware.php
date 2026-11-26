@@ -15,7 +15,7 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user || $request->user()->tipo_usuario !== 'admin') {
+        if (!$request->user() || $request->user()->tipo_usuario !== 'admin') {
            return response()->json([
                 'error' => 'Acesso negado. Apenas administradores',
            ], 403); 
