@@ -1,0 +1,17 @@
+export const colors = {
+  paper: '#F4F0E8',
+  ink: '#1B241E',
+  ink2: '#5E6760',
+  ink3: '#959B95',
+  forest: '#1E3A2A',
+  sage: '#DDE6D3',
+  sageInk: '#3E6A4C',
+  clay: '#C8562E',
+  clayBg: '#F5E0D5',
+  slate: '#4F5F7A',
+  slateBg: '#E2E6EE',
+  line: 'rgba(27,36,30,0.07)',
+  white: '#FFFFFF',
+  glass: 'rgba(255,255,255,0.5)',
+  glassBorder: 'rgba(255,255,255,0.8)',
+} as const;
