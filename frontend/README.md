@@ -1,12 +1,13 @@
 # ColheFácil — app
 
-App mobile do ColheFácil (Expo + React Native + TypeScript), ligado ao backend Laravel em `backend/`. Usa a API do PR #1 (`routes/api.php` com Sanctum).
+App mobile do ColheFácil (Expo + React Native + TypeScript), ligado ao backend Laravel em `../backend/`. Usa a API do PR #1 (`routes/api.php` com Sanctum).
 
 ## Instalar
 
 Pré-requisitos: Node.js 22 e o app Expo Go no celular (ou um simulador iOS/Android).
 
 ```bash
+cd frontend
 npm install
 cp .env.example .env
 ```
